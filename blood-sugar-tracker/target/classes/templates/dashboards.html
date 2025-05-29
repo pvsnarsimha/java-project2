@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Sugar Dashboards</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Animate.css for animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            margin: 0;
+            padding: 2rem;
+            color: #1a1a1a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(59, 130, 246, 0.7);
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            animation: fadeInDown 1s ease-out;
+        }
+        a[href="/"], button.download-pdf {
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            background: linear-gradient(45deg, #10b981, #22d3ee);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.5);
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border: none;
+            cursor: pointer;
+        }
+        a[href="/"]:hover, button.download-pdf:hover {
+            background: linear-gradient(45deg, #22d3ee, #10b981);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.7);
+            transform: translateY(-2px);
+        }
+        .upload-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            animation: fadeInUp 1s ease-out;
+        }
+        .upload-section label {
+            color: #1e40af;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        .upload-section input[type="file"] {
+            padding: 0.5rem;
+            border: 2px solid #22d3ee;
+            border-radius: 0.5rem;
+            background: #ffffff;
+            color: #1a1a1a;
+            transition: all 0.3s ease;
+        }
+        .upload-section input[type="file"]:hover {
+            border-color: #10b981;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+        }
+        .error {
+            color: #ef4444;
+            text-shadow: 0 0 5px rgba(239, 68, 68, 0.5);
+            font-size: 1rem;
+            margin: 0;
+            animation: shake 0.5s ease;
+        }
+        .patient-section {
+            margin-bottom: 3rem;
+            width: 100%;
+            max-width: 1400px;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            animation: fadeIn 1s ease-out;
+        }
+        .patient-section h2 {
+            color: #1e40af;
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            text-shadow: 0 0 8px rgba(30, 64, 175, 0.3);
+        }
+        .patient-section h3 {
+            color: #10b981;
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem;
+            text-shadow: 0 0 5px rgba(16, 185, 129, 0.3);
+        }
+        .chart-container {
+            width: 100%;
+            margin-top: 1.5rem;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            border: 2px solid #22d3ee !important;
+            border-radius: 0.75rem;
+            max-width: 600px;
+            max-height: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+            transition: transform 0.3s ease;
+        }
+        canvas:hover {
+            transform: scale(1.02);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(34, 211, 238, 0.2);
+        }
+        th {
+            background: linear-gradient(45deg, #22d3ee, #10b981);
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        tr:hover {
+            background: rgba(34, 211, 238, 0.1);
+        }
+        td {
+            color: #1a1a1a;
+        }
+        .hba1c-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        @keyframes glow {
+            0% { text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+            50% { text-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
+            100% { text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+        }
+        h1, .patient-section h2 {
+            animation: glow 3s infinite;
+        }
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .patient-section h2 { font-size: 1.75rem; }
+            .patient-section h3 { font-size: 1.25rem; }
+            canvas { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="animate__animated animate__fadeInDown">Blood Sugar Dashboards</h1>
+        <a href="/" class="animate__animated animate__fadeIn">Back to Home</a>
+        <div class="upload-section animate__animated animate__fadeInUp">
+            <label for="csvFileInput">Upload CSV File:</label>
+            <input type="file" id="csvFileInput" accept=".csv" />
+            <p class="error" id="errorMessage" style="display: none;"></p>
+        </div>
+        <button class="download-pdf animate__animated animate__fadeIn" id="downloadPdfButton" style="display: none;">Download PDF</button>
+        <div id="patientDashboards"></div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const csvFileInput = document.getElementById('csvFileInput');
+            const patientDashboards = document.getElementById('patientDashboards');
+            const errorMessage = document.getElementById('errorMessage');
+            const downloadPdfButton = document.getElementById('downloadPdfButton');
+            let allRecords = [];
+            let lastUpdateDate = null;
+            const periods = [
+                { id: 'today', label: 'Today' },
+                { id: 'yesterday', label: 'Yesterday' },
+                { id: 'week', label: 'Last Week' },
+                { id: 'month', label: 'This Month' },
+                { id: 'year', label: 'This Year' }
+            ];
+            function updatePeriodLabels() {
+                const today = new Date();
+                const yesterday = new Date(today);
+                yesterday.setDate(today.getDate() - 1);
+                const weekStart = new Date(today);
+                weekStart.setDate(today.getDate() - 7);
+                const weekEnd = new Date(today);
+                periods[0].label = `Today (${today.toLocaleDateString('en-GB', { day: 'numeric', month: 'numeric', year: '2-digit' })})`;
+                periods[1].label = `Yesterday (${yesterday.toLocaleDateString('en-GB', { day: 'numeric', month: 'numeric', year: '2-digit' })})`;
+                periods[2].label = `Last Week (${weekStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'numeric', year: '2-digit' })} - ${weekEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'numeric', year: '2-digit' })})`;
+                periods[3].label = `This Month (${today.toLocaleString('en-GB', { month: 'long', year: 'numeric' })})`;
+                periods[4].label = `This Year (${today.getFullYear()})`;
+            }
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js not loaded.');
+                showError('Chart.js not loaded.');
+                return;
+            }
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                errorMessage.classList.add('animate__animated', 'animate__shakeX');
+            }
+            function clearError() {
+                errorMessage.textContent = '';
+                errorMessage.style.display = 'none';
+                errorMessage.classList.remove('animate__animated', 'animate__shakeX');
+            }
+            function parseCSV(csvContent) {
+                const lines = csvContent.trim().split('\n');
+                if (lines.length < 1) throw new Error('CSV file is empty.');
+                const headers = lines[0].split(',').map(header => header.trim());
+                const expectedHeaders = ['date', 'fasting_sample_time', 'fasting_sugar_value', 'post_prandial_sample_time', 'post_prandial_sugar_value', 'patient_name'];
+                if (!expectedHeaders.every((header, index) => header === headers[index])) {
+                    throw new Error('CSV file does not match the expected format.');
+                }
+                const records = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',').map(value => value.trim());
+                    if (values.length !== headers.length) {
+                        console.warn(`Skipping malformed line ${i + 1}: ${lines[i]}`);
+                        continue;
+                    }
+                    records.push({
+                        date: values[0],
+                        fastingSampleTime: values[1],
+                        fastingSugarValue: parseInt(values[2], 10),
+                        postPrandialSampleTime: values[3],
+                        postPrandialSugarValue: parseInt(values[4], 10),
+                        patientName: values[5]
+                    });
+                }
+                return records;
+            }
+            function hasCurrentDate(records) {
+                const today = new Date();
+                const todayStr = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
+                return records.some(record => record.date === todayStr);
+            }
+            function categorizeRecords(records, periodId) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const yesterday = new Date(today);
+                yesterday.setDate(today.getDate() - 1);
+                const lastWeekStart = new Date(today);
+                lastWeekStart.setDate(today.getDate() - 7);
+                const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                const currentYearStart = new Date(today.getFullYear(), 0, 1);
+                return records.filter(record => {
+                    const recordDate = new Date(record.date);
+                    recordDate.setHours(0, 0, 0, 0);
+                    switch (periodId) {
+                        case 'today': return recordDate.getTime() === today.getTime();
+                        case 'yesterday': return recordDate.getTime() === yesterday.getTime();
+                        case 'week': return recordDate >= lastWeekStart && recordDate <= today;
+                        case 'month': return recordDate >= currentMonthStart && recordDate <= today;
+                        case 'year': return recordDate >= currentYearStart && recordDate <= today;
+                        default: return false;
+                    }
+                });
+            }
+            function groupByPatient(records) {
+                const grouped = {};
+                records.forEach(record => {
+                    if (!grouped[record.patientName]) grouped[record.patientName] = [];
+                    grouped[record.patientName].push(record);
+                });
+                return grouped;
+            }
+            function calculateHbA1c(records) {
+                const glucoseValues = [];
+                records.forEach(record => {
+                    if (!isNaN(record.fastingSugarValue)) glucoseValues.push(record.fastingSugarValue);
+                    if (!isNaN(record.postPrandialSugarValue)) glucoseValues.push(record.postPrandialSugarValue);
+                });
+                if (glucoseValues.length === 0) {
+                    return { hba1c: 'N/A', colorClass: 'bg-gray-500', status: 'No Data' };
+                }
+                const avgGlucose = glucoseValues.reduce((sum, val) => sum + val, 0) / glucoseValues.length;
+                const hba1c = ((avgGlucose + 46.7) / 28.7).toFixed(1);
+                let colorClass, status;
+                if (hba1c < 5.7) {
+                    colorClass = 'bg-green-500';
+                    status = 'OK';
+                } else if (hba1c >= 5.7 && hba1c <= 6.4) {
+                    colorClass = 'bg-yellow-500';
+                    status = 'Warning';
+                } else {
+                    colorClass = 'bg-red-500';
+                    status = 'Danger';
+                }
+                return { hba1c, colorClass, status };
+            }
+            const chartInstances = {};
+            function initializeChart(chartCanvasId, periodLabel, periodId, records) {
+                const chartCanvas = document.getElementById(chartCanvasId);
+                if (!chartCanvas) return null;
+                const dates = records.map(record => record.date);
+                const fastingValues = records.map(record => record.fastingSugarValue);
+                const postPrandialValues = records.map(record => record.postPrandialSugarValue);
+                const ctx = chartCanvas.getContext('2d');
+                if (!ctx) return null;
+                const allValues = [...fastingValues, ...postPrandialValues].filter(val => !isNaN(val));
+                const maxValue = allValues.length > 0 ? Math.max(...allValues) + 50 : 350;
+                const showPoints = periodId === 'today' || periodId === 'yesterday';
+                const chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [
+                            {
+                                label: 'Fasting Sugar (mg/dL)',
+                                data: fastingValues,
+                                borderColor: '#ff4d4f',
+                                backgroundColor: 'rgba(255, 77, 79, 0.8)',
+                                pointBackgroundColor: '#ff4d4f',
+                                pointBorderColor: '#ff4d4f',
+                                pointRadius: showPoints ? 6 : 0,
+                                pointHoverRadius: showPoints ? 8 : 0,
+                                fill: false,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Postprandial Sugar (mg/dL)',
+                                data: postPrandialValues,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                                pointBackgroundColor: '#10b981',
+                                pointBorderColor: '#10b981',
+                                pointRadius: showPoints ? 6 : 0,
+                                pointHoverRadius: showPoints ? 8 : 0,
+                                fill: false,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            x: {
+                                title: { display: true, text: 'Date', color: '#1a1a1a', font: { size: 14, weight: 'bold' } },
+                                ticks: { color: '#1a1a1a', maxRotation: 45, minRotation: 45 },
+                                grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                            },
+                            y: {
+                                title: { display: true, text: 'Sugar Level (mg/dL)', color: '#1a1a1a', font: { size: 14, weight: 'bold' } },
+                                ticks: { color: '#1a1a1a', stepSize: 50 },
+                                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                                min: 0,
+                                max: maxValue
+                            }
+                        },
+                        plugins: {
+                            legend: { labels: { color: '#1a1a1a', font: { size: 14 } } },
+                            tooltip: { backgroundColor: 'rgba(30, 64, 175, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 12 }, cornerRadius: 8 }
+                        },
+                        animation: { duration: 1500, easing: 'easeOutQuart' }
+                    }
+                });
+                chartInstances[chartCanvasId] = chart;
+                return chart;
+            }
+            function collectDataForPdf() {
+                const pdfData = {};
+                const patientSections = document.querySelectorAll('.patient-section');
+                patientSections.forEach(section => {
+                    const patientName = section.getAttribute('data-patient-name');
+                    pdfData[patientName] = { tables: {}, charts: {}, hba1c: {} };
+                    const hba1cBadge = section.querySelector('.hba1c-badge');
+                    if (hba1cBadge) {
+                        pdfData[patientName].hba1c = {
+                            value: hba1cBadge.textContent.split(': ')[1].split(' (')[0],
+                            status: hba1cBadge.textContent.match(/\(([^)]+)\)/)[1]
+                        };
+                    }
+                    periods.forEach(period => {
+                        const chartCanvasId = `sugarChart-${period.id}-${patientName.replace(/[^a-zA-Z0-9-_]/g, '_')}`;
+                        const table = section.querySelector(`[data-period="${period.id}"] table`);
+                        const chart = chartInstances[chartCanvasId];
+                        const tableData = [];
+                        if (table) {
+                            const rows = table.querySelectorAll('tbody tr');
+                            rows.forEach(row => {
+                                const cells = row.querySelectorAll('td');
+                                if (cells.length === 5) {
+                                    tableData.push([
+                                        cells[0].textContent,
+                                        cells[1].textContent,
+                                        cells[2].textContent,
+                                        cells[3].textContent,
+                                        cells[4].textContent
+                                    ]);
+                                }
+                            });
+                        }
+                        pdfData[patientName].tables[period.id] = tableData;
+                        pdfData[patientName].charts[period.id] = chart ? {
+                            labels: chart.data.labels,
+                            datasets: chart.data.datasets.map(dataset => ({
+                                label: dataset.label,
+                                data: dataset.data,
+                                borderColor: dataset.borderColor,
+                                backgroundColor: dataset.backgroundColor,
+                                pointBackgroundColor: dataset.pointBackgroundColor,
+                                pointBorderColor: dataset.pointBorderColor,
+                                pointRadius: dataset.pointRadius,
+                                fill: dataset.fill
+                            }))
+                        } : null;
+                    });
+                });
+                return pdfData;
+            }
+            async function downloadPdf() {
+                const pdfData = collectDataForPdf();
+                const patients = Object.keys(pdfData);
+                if (patients.length === 0) {
+                    showError('No patient data available to generate PDF.');
+                    return;
+                }
+                for (const patientName of patients) {
+                    const dataToSend = {
+                        patientName: patientName,
+                        tables: pdfData[patientName].tables,
+                        charts: pdfData[patientName].charts,
+                        hba1c: pdfData[patientName].hba1c
+                    };
+                    try {
+                        const response = await fetch('/generate-pdf', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(dataToSend)
+                        });
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            throw new Error(`Failed to generate PDF: ${response.status} ${errorText}`);
+                        }
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${patientName.replace(/[^a-zA-Z0-9_-]/g, '_')}_blood_sugar_report.pdf`;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+                    } catch (error) {
+                        showError('Error generating PDF: ' + error.message);
+                    }
+                }
+            }
+            function renderDashboard(records) {
+                const groupedRecords = groupByPatient(records);
+                patientDashboards.innerHTML = '';
+                Object.values(chartInstances).forEach(chart => chart.destroy());
+                Object.keys(chartInstances).forEach(key => delete chartInstances[key]);
+                if (Object.keys(groupedRecords).length === 0) {
+                    patientDashboards.innerHTML = '<p class="text-center text-gray-600">No valid records found in the CSV file.</p>';
+                    downloadPdfButton.style.display = 'none';
+                    return;
+                }
+                downloadPdfButton.style.display = 'inline-block';
+                const chartData = [];
+                Object.keys(groupedRecords).forEach(patientName => {
+                    const patientRecords = groupedRecords[patientName];
+                    const sanitizedPatientName = patientName.replace(/[^a-zA-Z0-9-_]/g, '_');
+                    const { hba1c, colorClass, status } = calculateHbA1c(patientRecords);
+                    const patientSection = document.createElement('div');
+                    patientSection.className = 'patient-section animate__animated animate__fadeIn';
+                    patientSection.setAttribute('data-patient-name', patientName);
+                    patientSection.innerHTML = `
+                        <h2>Dashboard for ${patientName}</h2>
+                        <div class="hba1c-badge ${colorClass}">HbA1c: ${hba1c}% (${status})</div>
+                    `;
+                    periods.forEach(period => {
+                        const filteredRecords = categorizeRecords(patientRecords, period.id);
+                        const periodSection = document.createElement('div');
+                        periodSection.setAttribute('data-period', period.id);
+                        periodSection.innerHTML = `<h3>${period.label}</h3>`;
+                        const table = document.createElement('table');
+                        table.innerHTML = `
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Fasting Sugar (mg/dL)</th>
+                                    <th>Fasting Time</th>
+                                    <th>Postprandial Sugar (mg/dL)</th>
+                                    <th>Postprandial Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filteredRecords.length > 0 ? filteredRecords.map(record => `
+                                    <tr>
+                                        <td>${record.date}</td>
+                                        <td>${record.fastingSugarValue || 'N/A'}</td>
+                                        <td>${record.fastingSampleTime || 'N/A'}</td>
+                                        <td>${record.postPrandialSugarValue || 'N/A'}</td>
+                                        <td>${record.postPrandialSampleTime || 'N/A'}</td>
+                                    </tr>
+                                `).join('') : `
+                                    <tr>
+                                        <td colspan="5">No records found for ${period.label}.</td>
+                                    </tr>
+                                `}
+                            </tbody>
+                        `;
+                        periodSection.appendChild(table);
+                        const chartContainer = document.createElement('div');
+                        chartContainer.className = 'chart-container';
+                        const canvas = document.createElement('canvas');
+                        const chartCanvasId = `sugarChart-${period.id}-${sanitizedPatientName}`;
+                        canvas.id = chartCanvasId;
+                        chartContainer.appendChild(canvas);
+                        periodSection.appendChild(chartContainer);
+                        patientSection.appendChild(periodSection);
+                        if (filteredRecords.length > 0) {
+                            chartData.push({
+                                chartCanvasId,
+                                periodLabel: period.label,
+                                periodId: period.id,
+                                records: filteredRecords
+                            });
+                        }
+                    });
+                    patientDashboards.appendChild(patientSection);
+                });
+                chartData.forEach(({ chartCanvasId, periodLabel, periodId, records }) => {
+                    initializeChart(chartCanvasId, periodLabel, periodId, records);
+                });
+            }
+            function checkForNewData() {
+                if (csvFileInput.files.length > 0) {
+                    const file = csvFileInput.files[0];
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            clearError();
+                            const csvContent = e.target.result;
+                            const records = parseCSV(csvContent);
+                            const currentDate = new Date();
+                            const currentDateStr = `${currentDate.getMonth() + 1}/${currentDate.getDate()}/${currentDate.getFullYear()}`;
+                            const hasNewRecord = hasCurrentDate(records);
+                            if (hasNewRecord || lastUpdateDate === null || currentDate.getDate() !== lastUpdateDate.getDate()) {
+                                allRecords = records;
+                                lastUpdateDate = new Date();
+                                updatePeriodLabels();
+                                renderDashboard(allRecords);
+                            }
+                        } catch (error) {
+                            showError(error.message);
+                        }
+                    };
+                    reader.onerror = () => {
+                        showError('Error reading the file.');
+                    };
+                    reader.readAsText(file);
+                }
+            }
+            csvFileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) {
+                    showError('No file selected.');
+                    return;
+                }
+                if (!file.name.endsWith('.csv')) {
+                    showError('Please upload a CSV file.');
+                    return;
+                }
+                checkForNewData();
+            });
+            downloadPdfButton.addEventListener('click', () => {
+                downloadPdf();
+            });
+            updatePeriodLabels();
+            checkForNewData();
+            setInterval(checkForNewData, 24 * 60 * 60 * 1000);
+            setInterval(updatePeriodLabels, 24 * 60 * 60 * 1000);
+        });
+    </script>
+</body>
+</html>

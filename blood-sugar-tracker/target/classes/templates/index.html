@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Sugar Tracker</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            color: #333;
+            line-height: 1.6;
+            background-color: #f8fafc;
+        }
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+        }
+        .health-accent {
+            color: #3b82f6; /* Blue for health theme */
+        }
+        .nav {
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+        .hero {
+            height: 80vh;
+            background-position: center;
+            background-size: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .hero-overlay {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%);
+            position: absolute;
+            inset: 0;
+        }
+        .feature-card {
+            transition: transform 0.3s ease;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border: none;
+            overflow: hidden;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+        .btn-health {
+            background-color: #3b82f6;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+        .btn-health:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+        }
+        .center-image {
+            display: flex;
+            justify-content: center;
+        }
+        #mobile-menu {
+            transition: transform 0.3s ease-in-out;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #3b82f6;
+        }
+        .glucose-meter {
+            max-height: 400px;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav py-4 fixed w-full z-50">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <a href="/" class="text-white text-2xl font-bold">Blood Sugar Tracker</a>
+            <div class="hidden md:flex space-x-6 items-center">
+                <a th:href="@{/records}" class="text-white hover:text-health-accent transition duration-300">View Records</a>
+                <a th:href="@{/add}" class="text-white hover:text-health-accent transition duration-300">Add Record</a>
+                <a th:href="@{/dashboards}" class="text-white hover:text-health-accent transition duration-300">Dashboards</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+    </nav>
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="md:hidden hidden bg-gray-900 text-white flex flex-col items-center space-y-4 py-4">
+        <a th:href="@{/records}" class="hover:text-health-accent transition duration-300">View Records</a>
+        <a th:href="@{/add}" class="hover:text-health-accent transition duration-300">Add Record</a>
+        <a th:href="@{/dashboards}" class="hover:text-health-accent transition duration-300">Dashboards</a>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero mt-0" style="background-image: url('https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');">
+        <div class="hero-overlay"></div>
+        <div class="container mx-auto px-6 text-center text-white relative z-10">
+            <h1 class="text-5xl md:text-7xl font-bold mb-6">Blood Sugar Tracker</h1>
+            <p class="text-xl md:text-2xl mb-8 max-w-2xl mx-auto">Empower your health with seamless blood sugar monitoring and insights.</p>
+            <div class="space-x-4">
+                <a th:href="@{/records}" class="btn-health inline-block">View Records</a>
+                <a th:href="@{/add}" class="btn-health inline-block">Add Record</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Welcome Section -->
+    <section class="py-16">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-black">Welcome to Blood Sugar Tracker</h2>
+                <div class="w-24 h-1 bg-health-accent mx-auto mb-6"></div>
+                <p class="text-lg max-w-3xl mx-auto">Monitor your fasting and post-prandial blood sugar levels, track your HbA1c, and gain insights to manage your health effectively.</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="center-image">
+                    <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" 
+                         alt="Blood Sugar Monitoring" 
+                         class="w-full h-auto rounded-lg shadow-xl glucose-meter">
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 health-accent">Your Health, Your Control</h3>
+                    <p class="mb-6">The Blood Sugar Tracker app allows you to log your glucose readings, view trends, and receive predicted HbA1c values with color-coded insights. Designed for ease and accuracy, it's your partner in diabetes management.</p>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <div class="feature-icon">📈</div>
+                            <h4 class="font-bold mb-2">Track Glucose</h4>
+                            <p class="text-sm">Log fasting and post-prandial readings with timestamps.</p>
+                        </div>
+                        <div>
+                            <div class="feature-icon">🩺</div>
+                            <h4 class="font-bold mb-2">HbA1c Insights</h4>
+                            <p class="text-sm">Get predicted HbA1c with green, yellow, or red indicators.</p>
+                        </div>
+                        <div>
+                            <div class="feature-icon">📊</div>
+                            <h4 class="font-bold mb-2">Dashboards</h4>
+                            <p class="text-sm">Visualize trends over days, weeks, or months.</p>
+                        </div>
+                        <div>
+                            <div class="feature-icon">📱</div>
+                            <h4 class="font-bold mb-2">User-Friendly</h4>
+                            <p class="text-sm">Intuitive interface for all users.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Why Choose Blood Sugar Tracker?</h2>
+                <div class="w-24 h-1 bg-health-accent mx-auto mb-6"></div>
+                <p class="text-lg max-w-3xl mx-auto">Discover the tools you need to stay on top of your health with our comprehensive tracking features.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="feature-card bg-gray-50 p-6 rounded-lg">
+                    <div class="center-image">
+                        <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" 
+                             alt="Easy Tracking" 
+                             class="w-full h-48 object-cover rounded">
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold mb-2 health-accent">Easy Tracking</h3>
+                        <p class="text-sm mb-4">Quickly add and edit blood sugar records with a simple interface designed for all users.</p>
+                        <a th:href="@{/add}" class="text-health-accent text-sm font-semibold">Try it now →</a>
+                    </div>
+                </div>
+                <div class="feature-card bg-gray-50 p-6 rounded-lg">
+                    <div class="center-image">
+                        <img src="https://images.unsplash.com/photo-1579684453423-f84349ef60b0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" 
+                             alt="Health Insights" 
+                             class="w-full h-48 object-cover rounded">
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold mb-2 health-accent">Health Insights</h3>
+                        <p class="text-sm mb-4">Analyze your data with interactive dashboards to understand trends and patterns.</p>
+                        <a th:href="@{/dashboards}" class="text-health-accent text-sm font-semibold">View dashboards →</a>
+                    </div>
+                </div>
+                <div class="feature-card bg-gray-50 p-6 rounded-lg">
+                    <div class="center-image">
+                        <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" 
+                             alt="Secure Data" 
+                             class="w-full h-48 object-cover rounded">
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold mb-2 health-accent">Secure Data</h3>
+                        <p class="text-sm mb-4">Your sensitive health data is stored safely and privately with encryption.</p>
+                        <a href="#" class="text-health-accent text-sm font-semibold">Learn more →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="py-16 bg-gray-100">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">What Our Users Say</h2>
+                <div class="w-24 h-1 bg-health-accent mx-auto mb-6"></div>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" 
+                             alt="User" class="w-12 h-12 rounded-full mr-4">
+                        <div>
+                            <h4 class="font-bold">Sarah Johnson</h4>
+                            <p class="text-sm text-gray-600">Type 2 Diabetes</p>
+                        </div>
+                    </div>
+                    <p class="text-sm">"This tracker has completely changed how I manage my diabetes. The HbA1c predictions help me stay on track between doctor visits."</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" 
+                             alt="User" class="w-12 h-12 rounded-full mr-4">
+                        <div>
+                            <h4 class="font-bold">Michael Chen</h4>
+                            <p class="text-sm text-gray-600">Pre-diabetic</p>
+                        </div>
+                    </div>
+                    <p class="text-sm">"The dashboard visualizations helped me identify patterns in my blood sugar that I never noticed before. Highly recommended!"</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" 
+                             alt="User" class="w-12 h-12 rounded-full mr-4">
+                        <div>
+                            <h4 class="font-bold">Priya Patel</h4>
+                            <p class="text-sm text-gray-600">Type 1 Diabetes</p>
+                        </div>
+                    </div>
+                    <p class="text-sm">"As someone with Type 1, I need to track multiple times a day. This app makes it so easy to log and review my numbers."</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-16 bg-health-accent text-white">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Start Tracking Today</h2>
+            <p class="text-lg max-w-2xl mx-auto mb-8">Take control of your health with the Blood Sugar Tracker. Add your first record now or explore your data.</p>
+            <div class="space-x-4">
+                <a th:href="@{/add}" class="btn-health inline-block bg-white text-health-accent hover:bg-gray-100">Add Your First Record</a>
+                <a th:href="@{/dashboards}" class="btn-health inline-block bg-transparent border-2 border-white hover:bg-white hover:text-health-accent">View Dashboards</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4 health-accent">Blood Sugar Tracker</h3>
+                    <p class="mb-4">A user-friendly app to monitor and manage your blood sugar levels.</p>
+                    <div class="flex space-x-4">
+                        <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" class="w-6 h-6"></a>
+                        <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" class="w-6 h-6"></a>
+                        <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" alt="Twitter" class="w-6 h-6"></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a th:href="@{/records}" class="hover:text-health-accent transition duration-300">View Records</a></li>
+                        <li><a th:href="@{/add}" class="hover:text-health-accent transition duration-300">Add Record</a></li>
+                        <li><a th:href="@{/dashboards}" class="hover:text-health-accent transition duration-300">Dashboards</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Resources</h4>
+                    <ul class="space-y-2">
+                        <li><a href="assets/diabetes_guide.pdf" class="hover:text-health-accent transition duration-300">Diabetes Guide</a></li>
+                        <li><a href="assets/healthy_recipe.pdf" class="hover:text-health-accent transition duration-300">Healthy Recipes</a></li>
+                        <li><a href="assets/exercise_tips.pdf" class="hover:text-health-accent transition duration-300">Exercise Tips</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">Contact Us</h4>
+                    <ul class="space-y-2">
+                        <li class="flex items-start">
+                            <img src="https://cdn-icons-png.flaticon.com/512/561/561127.png" alt="Email" class="w-4 h-4 mr-2 mt-1">
+                            support@bloodsugartracker.com
+                        </li>
+                        <li class="flex items-start">
+                            <img src="https://cdn-icons-png.flaticon.com/512/455/455705.png" alt="Phone" class="w-4 h-4 mr-2 mt-1">
+                            +91 123 456 7890
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-sm">
+                <p>© 2025 Blood Sugar Tracker. All rights reserved.</p>
+                <p class="mt-2">Images from <a href="https://unsplash.com" class="text-health-accent hover:underline" target="_blank">Unsplash</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Mobile Menu Toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Record</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #00cec9;
+            --accent: #fd79a8;
+            --light: #f8f9fa;
+            --dark: #2d3436;
+            --success: #00b894;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+        }
+        
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+            font-size: 2.2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+        
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+            outline: none;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        button {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+            flex: 1;
+            margin-right: 15px;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(108, 92, 231, 0.6);
+        }
+        
+        a.cancel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            color: var(--dark);
+            border: 2px solid #e0e0e0;
+            padding: 13px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+        
+        a.cancel:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            text-decoration: none;
+            transform: translateY(-3px);
+        }
+        
+        .input-icon {
+            position: relative;
+        }
+        
+        .input-icon i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+        }
+        
+        /* Floating animation for visual interest */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .float {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container float">
+        <h1>Add New Record</h1>
+        <form th:action="@{/add}" th:object="${record}" method="post">
+            <div class="form-group">
+                <label for="patientName">Patient Name</label>
+                <div class="input-icon">
+                    <input type="text" id="patientName" th:field="*{patientName}" required placeholder="Enter patient name" />
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="date">Date</label>
+                <div class="input-icon">
+                    <input type="date" id="date" th:field="*{date}" required />
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="fastingSugarValue">Fasting Sugar (mg/dL)</label>
+                <div class="input-icon">
+                    <input type="number" id="fastingSugarValue" th:field="*{fastingSugarValue}" placeholder="Enter fasting sugar level" />
+                    <i class="fas fa-tint"></i>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="fastingSampleTime">Fasting Sample Time</label>
+                <div class="input-icon">
+                    <input type="time" id="fastingSampleTime" th:field="*{fastingSampleTime}" />
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="postPrandialSugarValue">Postprandial Sugar (mg/dL)</label>
+                <div class="input-icon">
+                    <input type="number" id="postPrandialSugarValue" th:field="*{postPrandialSugarValue}" placeholder="Enter postprandial sugar level" />
+                    <i class="fas fa-tint"></i>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="postPrandialSampleTime">Postprandial Sample Time</label>
+                <div class="input-icon">
+                    <input type="time" id="postPrandialSampleTime" th:field="*{postPrandialSampleTime}" />
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit">Save Record <i class="fas fa-save"></i></button>
+                <a href="/" class="cancel">Cancel <i class="fas fa-times"></i></a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
